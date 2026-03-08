@@ -10,6 +10,8 @@ export default defineConfig({
   vite: {
     plugins: [tailwindcss()]
   },
-
+  image: {
+    domains: ["cdn.myanimelist.net", "placehold.co"]
+  },
   integrations: [react()]
 });
