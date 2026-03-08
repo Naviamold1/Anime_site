@@ -1,0 +1,70 @@
+---
+import type { Media } from "@/db/schema";
+import { Image } from "astro:assets";
+
+interface Props {
+  media: Media;
+}
+
+const { media } = Astro.props;
+
+const title = media.englishName || media.name || media.japaneseName || "Featured Anime";
+const synopsis = media.synopsis || "No synopsis available.";
+// Prefer a high res wide image if possible, but we only have posterUrl. 
+// We'll use the posterUrl with a blur effect as the background, and the clear poster on the side.
+const bgImage = media.posterUrl || "https://placehold.co/1920x1080?text=Featured";
+---
+
+<div class="relative w-full h-[70vh] min-h-[500px] max-h-[800px] flex items-end pb-16 overflow-hidden bg-black text-white">
+  {/* Background Image with Overlay */}
+  <div class="absolute inset-0 z-0">
+    <Image
+      src={bgImage}
+      alt={`${title} background`}
+      class="w-full h-full object-cover opacity-40 blur-sm scale-105"
+      draggable="false"
+      inferSize={true}
+    />
+    <div class="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent"></div>
+    <div class="absolute inset-0 bg-gradient-to-r from-black via-black/40 to-transparent"></div>
+  </div>
+
+  {/* Content */}
+  <div class="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row gap-8 items-end md:items-center">
+    
+    {/* Left Info */}
+    <div class="flex-1 max-w-2xl">
+      {media.type && (
+        <span class="inline-block px-3 py-1 mb-4 text-xs font-bold tracking-wider text-orange-400 uppercase bg-orange-400/10 rounded-full border border-orange-400/20 backdrop-blur-md">
+          Featured {media.type}
+        </span>
+      )}
+      
+      <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight mb-4 drop-shadow-lg">
+        {title}
+      </h1>
+      
+      <div class="flex items-center gap-4 text-sm text-zinc-300 mb-6 font-medium">
+        {media.rating && <span class="px-2 py-0.5 border border-zinc-700 rounded bg-black/50">{media.rating}</span>}
+        {media.airedOn && <span>{media.airedOn.split(',')[0]}</span>}
+        {media.episodes && <span>{media.episodes} Episodes</span>}
+        {media.status && <span class="text-orange-300">{media.status}</span>}
+      </div>
+
+      <p class="text-zinc-300 text-sm md:text-base leading-relaxed line-clamp-3 md:line-clamp-4 mb-8 max-w-xl drop-shadow-md">
+        {synopsis}
+      </p>
+
+      <div class="flex items-center gap-4">
+        <a 
+          href={`/anime/${media.id}`}
+          class="flex items-center gap-2 px-8 py-3 bg-white text-black font-bold rounded-lg hover:bg-zinc-200 transition-colors duration-200"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+          More Details
+        </a>
+      </div>
+    </div>
+
+  </div>
+</div>

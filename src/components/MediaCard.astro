@@ -1,0 +1,39 @@
+---
+import type { Media } from "@/db/schema";
+import { Image } from "astro:assets";
+
+interface Props {
+  media: Partial<Media> & { id: number };
+}
+
+const { media } = Astro.props;
+
+const title = media.name || media.englishName || media.japaneseName || `#${media.id}`;
+const posterUrl = media.posterUrl || "https://placehold.co/600x900?text=No+Poster";
+---
+
+<a href={`/anime/${media.id}`} class="block group relative rounded-md md:rounded-lg overflow-hidden transition-all duration-300 hover:scale-105 hover:z-10 focus:outline-none focus:ring-2 focus:ring-orange-500">
+  <div class="aspect-[2/3] w-full relative">
+    <Image 
+      src={posterUrl} 
+      alt={title} 
+      inferSize={true}
+      loading="lazy"
+      class="w-full h-full object-cover transition-opacity duration-300"
+    />
+    
+    {/* Hover Overlay */}
+    <div class="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3 sm:p-4">
+      <h3 class="text-white font-bold text-sm sm:text-base line-clamp-2 mb-1">{title}</h3>
+      <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-zinc-300 font-medium">
+        {media.type && <span class="text-orange-400">{media.type}</span>}
+        {media.episodes && <span>{media.episodes} eps</span>}
+      </div>
+      {media.genres && (
+        <p class="text-[10px] sm:text-xs text-zinc-400 mt-2 line-clamp-2 leading-tight">
+          {media.genres.split(',').slice(0, 3).join(' • ')}
+        </p>
+      )}
+    </div>
+  </div>
+</a>

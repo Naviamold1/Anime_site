@@ -1,0 +1,37 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import OnboardingForm from "@/components/OnboardingForm";
+import { auth } from "@/lib/auth";
+
+export const prerender = false;
+
+const session = await auth.api.getSession({ headers: Astro.request.headers });
+
+if (!session) {
+  return Astro.redirect("/");
+}
+
+/* 
+  If already onboarded, don't show this page.
+  Note: Better Auth session contains the user object.
+*/
+if (session.user.onboarded) {
+  return Astro.redirect("/");
+}
+---
+
+<Layout title="Welcome | Onboarding">
+  <main class="min-h-[calc(100vh-64px)] flex items-center justify-center p-4 bg-[#090909]">
+    <div class="w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-2xl p-8 shadow-2xl">
+      <div class="text-center mb-8">
+        <div class="w-16 h-16 bg-orange-500 text-white rounded-2xl flex items-center justify-center text-3xl font-black mx-auto mb-4 rotate-3 shadow-lg shadow-orange-500/20">
+          A
+        </div>
+        <h1 class="text-2xl font-black text-white mb-2">Welcome to AnimeLibrary</h1>
+        <p class="text-zinc-400 text-sm">Let's set up your profile to get started.</p>
+      </div>
+      
+      <OnboardingForm client:load user={session.user} />
+    </div>
+  </main>
+</Layout>

@@ -1,0 +1,36 @@
+---
+import { auth } from "@/lib/auth";
+import "@/styles/globals.css";
+import Navbar from "@/components/Navbar.astro";
+
+interface Props {
+	title: string;
+}
+
+const { title } = Astro.props;
+
+// Global Onboarding Check
+const session = await auth.api.getSession({ headers: Astro.request.headers });
+const pathname = Astro.url.pathname;
+
+if (session && !session.user.onboarded && pathname !== "/onboarding" && !pathname.startsWith("/api")) {
+	return Astro.redirect("/onboarding");
+}
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+  </head>
+  <body class="bg-[#090909] text-zinc-100 min-h-screen flex flex-col">
+    <Navbar />
+    <main class="flex-1">
+      <slot />
+    </main>
+  </body>
+</html>

@@ -1,0 +1,29 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import HeroSection from "@/components/HeroSection.astro";
+import MediaRow from "@/components/MediaRow.astro";
+import { getFeaturedMedia, getMediaByCategory } from "@/db/queries";
+
+// Fetch data for the homepage
+const featuredMedia = await getFeaturedMedia();
+const trending = await getMediaByCategory("trending", 15);
+const romance = await getMediaByCategory("top romance", 15);
+const action = await getMediaByCategory("action packed", 15);
+const specials = await getMediaByCategory("popular specials", 15);
+const movies = await getMediaByCategory("movies", 15);
+
+---
+
+<Layout title="Anime & Manga Library | Home">
+  <main class="bg-[#090909] min-h-screen pb-12">
+    {featuredMedia && <HeroSection media={featuredMedia} />}
+
+    <div class="relative z-20 -mt-8 sm:-mt-16 md:-mt-24 pb-8 space-y-2 sm:space-y-4">
+      {trending.length > 0 && <MediaRow title="Trending Now" items={trending} />}
+      {action.length > 0 && <MediaRow title="Action Packed" items={action} />}
+      {romance.length > 0 && <MediaRow title="Top Romance" items={romance} />}
+      {movies.length > 0 && <MediaRow title="Anime Movies" items={movies} />}
+      {specials.length > 0 && <MediaRow title="Popular Specials" items={specials} />}
+    </div>
+  </main>
+</Layout>

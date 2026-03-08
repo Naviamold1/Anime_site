@@ -1,0 +1,114 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { getMediaById } from "@/db/queries";
+import ReviewSection from "@/components/ReviewSection";
+import { Image } from "astro:assets";
+
+export const prerender = false; // Enable SSR for dynamic ID lookups
+
+const { id } = Astro.params;
+
+if (!id) {
+  return Astro.redirect('/404');
+}
+
+const media = await getMediaById(Number(id));
+
+if (!media) {
+  return Astro.redirect('/404');
+}
+
+const title = media.name || media.englishName || media.japaneseName || `Anime #${media.id}`;
+const bgImage = media.posterUrl || "https://placehold.co/1920x1080?text=Background";
+const posterImage = media.posterUrl || "https://placehold.co/600x900?text=No+Poster";
+
+const infoList = [
+  { label: "Format", value: media.type },
+  { label: "Episodes", value: media.episodes },
+  { label: "Status", value: media.status },
+  { label: "Aired", value: media.aired },
+  { label: "Premiered", value: media.premiered },
+  { label: "Studios", value: media.studios },
+  { label: "Source", value: media.source },
+  { label: "Duration", value: media.duration },
+  { label: "Rating", value: media.rating },
+].filter(item => item.value);
+
+---
+
+<Layout title={`${title} | Anime & Manga Library`}>
+  <main class="bg-[#090909] min-h-screen text-zinc-100 pb-20">
+    
+    {/* Hero Header Area */}
+    <div class="relative w-full h-[40vh] min-h-[300px] max-h-[500px] overflow-hidden">
+      <div class="absolute inset-0 z-0">
+        <Image
+          src={bgImage}
+          alt={`${title} background`}
+          class="w-full h-full object-cover opacity-30 blur-md scale-110"
+          inferSize={true}
+        />
+        <div class="absolute inset-0 bg-gradient-to-t from-[#090909] via-[#090909]/60 to-transparent"></div>
+      </div>
+    </div>
+
+    {/* Content Container */}
+    <div class="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 -mt-32 sm:-mt-48 flex flex-col md:flex-row gap-8 lg:gap-12">
+      
+      {/* Left Column: Poster & Quick Stats */}
+      <div class="w-[200px] sm:w-[250px] md:w-[300px] shrink-0 mx-auto md:mx-0">
+        <div class="rounded-xl overflow-hidden shadow-2xl shadow-black ring-1 ring-zinc-800 bg-zinc-950">
+          <Image 
+            src={posterImage} 
+            alt={title}
+            class="w-full aspect-[2/3] object-cover"
+            inferSize={true}
+          />
+        </div>
+
+        <div class="mt-6 bg-zinc-900/50 rounded-xl p-5 ring-1 ring-zinc-800/50">
+          <h3 class="font-bold text-sm tracking-wider uppercase text-zinc-400 mb-4 border-b border-zinc-800 pb-2">Information</h3>
+          <ul class="space-y-3 text-sm">
+            {infoList.map(item => (
+              <li class="flex flex-col">
+                <span class="text-xs text-zinc-500 font-medium">{item.label}</span>
+                <span class="text-zinc-200">{item.value}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      {/* Right Column: Title, Synopsis, Details + Reviews */}
+      <div class="flex-1 pt-4 md:pt-[10vh]">
+        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight mb-2 drop-shadow-sm">
+          {title}
+        </h1>
+        
+        {media.japaneseName && media.japaneseName !== title && (
+          <h2 class="text-lg sm:text-xl text-zinc-400 font-medium mb-6">
+            {media.japaneseName}
+          </h2>
+        )}
+
+        <div class="flex flex-wrap gap-2 mb-8">
+          {media.genres && media.genres.split(',').map((genre) => (
+            <span class="px-3 py-1 bg-zinc-800 text-zinc-200 text-xs font-semibold rounded-full ring-1 ring-zinc-700">
+              {genre.trim()}
+            </span>
+          ))}
+        </div>
+
+        <div class="prose prose-invert prose-zinc max-w-none">
+          <h3 class="text-xl font-bold border-b border-zinc-800 pb-2 mb-4">Synopsis</h3>
+          <p class="whitespace-pre-line leading-relaxed text-zinc-300">
+            {media.synopsis || "No synopsis available for this title."}
+          </p>
+        </div>
+
+        {/* Reviews Section */}
+        <ReviewSection client:load mediaId={media.id} />
+      </div>
+    </div>
+  </main>
+</Layout>

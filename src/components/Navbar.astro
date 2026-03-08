@@ -1,0 +1,42 @@
+---
+import { Search } from "lucide-react";
+import NavbarAuth from "./NavbarAuth";
+---
+
+<header class="sticky top-0 z-50 w-full border-b border-zinc-800 bg-[#090909]/80 backdrop-blur-md">
+  <div class="container mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+    
+    {/* Logo */}
+    <a href="/" class="flex items-center gap-2 group flex-shrink-0">
+      <div class="w-8 h-8 rounded bg-orange-500 text-white flex items-center justify-center font-bold text-xl group-hover:bg-orange-400 transition-colors">
+        A
+      </div>
+      <span class="font-extrabold text-xl tracking-tight text-white hidden md:block group-hover:text-orange-100 transition-colors">
+        AnimeLibrary
+      </span>
+    </a>
+
+    {/* Search Box */}
+    <form action="/search" method="GET" class="flex-1 max-w-sm mr-auto relative">
+      <div class="relative group">
+        <label for="search-input" class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 group-hover:text-zinc-300 transition-colors">
+          <Search size={18} />
+          <span class="sr-only">Search</span>
+        </label>
+        <input 
+          id="search-input"
+          name="q"
+          type="search" 
+          placeholder="Search anime, genres..." 
+          class="w-full bg-zinc-900/50 border border-zinc-800 rounded-full py-1.5 pl-10 pr-4 text-sm text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500 transition-all"
+          autocomplete="off"
+        />
+      </div>
+    </form>
+    
+    {/* Auth / Profile Area */}
+    <div class="flex items-center shrink-0">
+      <NavbarAuth client:load />
+    </div>
+  </div>
+</header>
