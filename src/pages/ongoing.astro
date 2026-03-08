@@ -1,0 +1,143 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getAllOngoingAnimes } from '../lib/db';
+
+let animes = [];
+let fetchError = false;
+
+try {
+  animes = await getAllOngoingAnimes();
+} catch (err) {
+  fetchError = true;
+  console.error('DB error:', err);
+}
+
+// Serialize all anime to JSON for client-side infinite scroll
+const animesJson = JSON.stringify(animes);
+---
+
+<Layout title="MySite — ყველა მიმდინარე ანიმე">
+  <section id="ongoing-panel">
+    <a href="/" class="panel-title-btn">← მთავარ გვერდზე დაბრუნება</a>
+    <h1 class="page-heading">მიმდინარე ანიმეები</h1>
+
+    {fetchError && (
+      <div class="error-message" style="display:block;">
+        დაფიქსირდა შეცდომა მონაცემთა ბაზის წაკითხვისას.
+      </div>
+    )}
+
+    <div class="anime-grid-full" id="anime-grid"></div>
+    <div id="scroll-sentinel" style="height: 1px;"></div>
+    <div id="loading-more" style="display:none; text-align:center; padding: 20px; color: var(--primary);">
+      იტვირთება...
+    </div>
+  </section>
+</Layout>
+
+<style>
+  .page-heading {
+    color: #ff3b3b;
+    font-size: 22px;
+    font-weight: bold;
+    margin-bottom: 20px;
+  }
+
+  .anime-grid-full {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 20px;
+    padding-bottom: 20px;
+  }
+
+  .no-poster {
+    width: 100%;
+    height: 230px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #8a9ba8;
+    font-size: 12px;
+  }
+</style>
+
+<script define:vars={{ animesJson }}>
+  const ALL_ANIMES = JSON.parse(animesJson);
+  const BATCH_SIZE = 40;
+  let currentIndex = 0;
+  let isLoading = false;
+
+  const grid = document.getElementById('anime-grid');
+  const sentinel = document.getElementById('scroll-sentinel');
+  const loadingMore = document.getElementById('loading-more');
+  const searchInput = document.getElementById('search-input');
+
+  // Build a card element
+  function createCard(item) {
+    const card = document.createElement('div');
+    card.className = 'anime-card';
+    card.dataset.title = (item.name || '').toLowerCase();
+
+    const title = item.english_name || item.name || 'უსახელო';
+    const studio = item.studios || '';
+    const img = item.poster_url
+      ? `<img src="${item.poster_url}" alt="${title} Cover" class="anime-poster" loading="lazy" />`
+      : `<div class="no-poster">No Image</div>`;
+
+    card.innerHTML = `
+      ${img}
+      <div class="anime-info">
+        <div class="anime-title">${title}</div>
+        <div class="anime-meta">${studio}</div>
+      </div>
+    `;
+    return card;
+  }
+
+  // Render next batch of cards
+  function loadMore() {
+    if (isLoading || currentIndex >= ALL_ANIMES.length) return;
+    isLoading = true;
+    loadingMore.style.display = 'block';
+
+    // Small timeout so the loading indicator actually shows
+    setTimeout(() => {
+      const batch = ALL_ANIMES.slice(currentIndex, currentIndex + BATCH_SIZE);
+      const fragment = document.createDocumentFragment();
+      batch.forEach(item => fragment.appendChild(createCard(item)));
+      grid.appendChild(fragment);
+      currentIndex += batch.length;
+      isLoading = false;
+      loadingMore.style.display = currentIndex >= ALL_ANIMES.length ? 'none' : 'none';
+    }, 200);
+  }
+
+  // Infinite scroll via IntersectionObserver
+  const observer = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting) loadMore();
+  }, { rootMargin: '200px' });
+
+  observer.observe(sentinel);
+
+  // Load first batch immediately
+  loadMore();
+
+  // Search filters already-rendered cards
+  function debounce(fn, delay) {
+    let timer;
+    return (...args) => {
+      clearTimeout(timer);
+      timer = setTimeout(() => fn(...args), delay);
+    };
+  }
+
+  searchInput?.addEventListener('input', debounce((e) => {
+    const term = e.target.value.toLowerCase().trim();
+    document.querySelectorAll('.anime-card').forEach(card => {
+      const title = card.dataset.title || '';
+      card.style.display = !term || title.includes(term) ? '' : 'none';
+    });
+  }, 300));
+</script>

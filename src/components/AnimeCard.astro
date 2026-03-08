@@ -1,0 +1,20 @@
+---
+// src/components/AnimeCard.astro
+// Reusable anime card component
+interface Props {
+  id: number;
+  title: string;
+  cover: string;
+  studio: string;
+}
+
+const { id, title, cover, studio } = Astro.props;
+---
+
+<div class="anime-card" data-anime-id={id} data-title={title.toLowerCase()}>
+  <img src={cover} alt={`${title} Cover`} class="anime-poster" loading="lazy" />
+  <div class="anime-info">
+    <div class="anime-title">{title}</div>
+    <div class="anime-meta">{studio}</div>
+  </div>
+</div>
